@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: leave-attendance-system
+    runtime: python
+    plan: free
+    buildCommand: ./build.sh
+    startCommand: gunicorn config.wsgi:application --workers 2 --threads 4 --timeout 120
+    healthCheckPath: /health/
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: RENDER
+        value: "true"
+      - key: DATABASE_URL
+        sync: false
+      - key: ALLOWED_HOSTS
+        value: "localhost,127.0.0.1"
+      - key: CSRF_TRUSTED_ORIGINS
+        value: "https://leave-attendance-system.onrender.com"
+      - key: TIME_ZONE
+        value: "Asia/Kolkata"

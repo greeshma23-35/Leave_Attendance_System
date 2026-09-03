@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Attendance | WorkFlow HR{% endblock %}
+{% block page_heading %}Attendance{% endblock %}
+{% block page_subtitle %}Track attendance for yourself{% if user.is_manager or user.is_admin %} and your team{% endif %}.{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="toolbar">
+    <form class="search" method="get">
+      <input type="date" name="date" value="{{ date }}">
+      <select name="status">
+        <option value="">All statuses</option>
+        {% for value, label in statuses %}
+          <option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <button class="btn ghost">Filter</button>
+    </form>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Employee</th>
+          <th>Date</th>
+          <th>Check in</th>
+          <th>Check out</th>
+          <th>Status</th>
+          <th>Remarks</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in page %}
+          <tr>
+            <td>
+              <strong>{{ item.user.get_full_name|default:item.user.email }}</strong>
+              <small>{{ item.user.employee_id }}</small>
+            </td>
+            <td>{{ item.date|date:'d M Y' }}</td>
+            <td>{{ item.check_in|time:'H:i'|default:'—' }}</td>
+            <td>{{ item.check_out|time:'H:i'|default:'—' }}</td>
+            <td><span class="status {{ item.status|lower }}">{{ item.get_status_display }}</span></td>
+            <td>{{ item.remarks|default:'—' }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6" class="empty">No attendance records found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% include 'portal/pagination.html' with page=page %}
+</div>
+{% endblock %}

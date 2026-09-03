@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block title %}Leave Requests | WorkFlow HR{% endblock %}
+{% block page_heading %}Leave requests{% endblock %}
+{% block page_subtitle %}Apply, track, and review leave requests.{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="toolbar">
+    <form class="search" method="get">
+      <select name="status">
+        <option value="">All statuses</option>
+        {% for value, label in statuses %}
+          <option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <button class="btn ghost">Filter</button>
+    </form>
+
+    <a href="{% url 'portal:apply_leave' %}" class="btn primary">+ Apply for leave</a>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Employee</th>
+          <th>Manager</th>
+          <th>Leave type</th>
+          <th>Dates</th>
+          <th>Days</th>
+          <th>Reason</th>
+          <th>Status</th>
+          {% if user.is_manager or user.is_admin %}<th>Action</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in page %}
+          <tr>
+            <td>
+              <strong>{{ item.user.get_full_name|default:item.user.email }}</strong>
+              <small>{{ item.user.employee_id }}</small>
+            </td>
+            <td>
+              {% if item.user.manager %}
+                <strong>{{ item.user.manager.get_full_name }}</strong>
+                <small>{{ item.user.manager.employee_id }}</small>
+              {% else %}
+                —
+              {% endif %}
+            </td>
+            <td>{{ item.leave_type.name }}</td>
+            <td>{{ item.start_date|date:'d M Y' }} – {{ item.end_date|date:'d M Y' }}</td>
+            <td>{{ item.total_days }}</td>
+            <td class="reason">{{ item.reason }}</td>
+            <td><span class="status {{ item.status|lower }}">{{ item.get_status_display }}</span></td>
+
+            {% if user.is_manager or user.is_admin %}
+              <td>
+                {% if item.status == 'PENDING' and item.user.manager_id == user.id or item.status == 'PENDING' and user.is_admin %}
+                  <form method="post" action="{% url 'portal:review_leave' item.id 'approve' %}" class="inline">
+                    {% csrf_token %}
+                    <button class="btn mini primary">Approve</button>
+                  </form>
+                  <form method="post" action="{% url 'portal:review_leave' item.id 'reject' %}" class="inline">
+                    {% csrf_token %}
+                    <button class="btn mini danger">Reject</button>
+                  </form>
+                {% elif item.status == 'PENDING' and item.user_id == user.id %}
+                  <form method="post" action="{% url 'portal:cancel_leave' item.id %}">
+                    {% csrf_token %}
+                    <button class="btn mini danger">Cancel</button>
+                  </form>
+                {% endif %}
+              </td>
+            {% endif %}
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="{% if user.is_manager or user.is_admin %}8{% else %}7{% endif %}" class="empty">No leave requests found.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% include 'portal/pagination.html' with page=page %}
+</div>
+{% endblock %}
