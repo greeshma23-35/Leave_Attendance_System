@@ -7,7 +7,6 @@ can run in development, testing, and production without code changes.
 from datetime import timedelta
 from pathlib import Path
 import os
-import dj_database_url
 from decouple import Csv, config
 import dj_database_url
 
