@@ -1,0 +1,1 @@
+document.addEventListener('DOMContentLoaded',()=>{setTimeout(()=>document.querySelectorAll('.alert').forEach(el=>{el.style.transition='opacity .3s';el.style.opacity='0';setTimeout(()=>el.remove(),300)}),4500)});
